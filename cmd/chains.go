@@ -65,7 +65,7 @@ func cmdChainsAdd(a *appState) *cobra.Command {
 			overwriteConfig := false
 
 			for _, chain := range args {
-				chainInfo, err := registry.GetChain(cmd.Context(), chain)
+				chainInfo, err := registry.GetChain(chain)
 				if err != nil {
 					a.Log.Info(
 						"Failed to get chain",
