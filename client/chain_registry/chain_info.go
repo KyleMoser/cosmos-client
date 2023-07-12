@@ -170,7 +170,7 @@ func (c ChainInfo) GetRandomRPCEndpoint(ctx context.Context) (string, error) {
 	return endpoint, nil
 }
 
-func (c ChainInfo) GetAssetList(ctx context.Context) (AssetList, error) {
+func (c ChainInfo) GetAssetList() (AssetList, error) {
 	chainRegURL := fmt.Sprintf("https://raw.githubusercontent.com/cosmos/chain-registry/master/%s/assetlist.json", c.ChainName)
 
 	res, err := http.Get(chainRegURL)
@@ -202,7 +202,7 @@ func (c ChainInfo) GetChainConfig(ctx context.Context) (*client.ChainClientConfi
 	debug := viper.GetBool("debug")
 	home := viper.GetString("home")
 
-	assetList, err := c.GetAssetList(ctx)
+	assetList, err := c.GetAssetList()
 	if err != nil {
 		return nil, err
 	}
@@ -232,4 +232,19 @@ func (c ChainInfo) GetChainConfig(ctx context.Context) (*client.ChainClientConfi
 		SignModeStr:    "direct",
 		Slip44:         c.Slip44,
 	}, nil
+}
+
+func GetChain(ctx context.Context, chainName string, logger *zap.Logger) (*client.ChainClientConfig, error) {
+	registry := DefaultChainRegistry(logger)
+	chainInfo, err := registry.GetChain(chainName)
+	if err != nil {
+		logger.Info(
+			"Failed to get chain",
+			zap.String("name", chainName),
+			zap.Error(err),
+		)
+		return nil, err
+	}
+
+	return chainInfo.GetChainConfig(ctx)
 }

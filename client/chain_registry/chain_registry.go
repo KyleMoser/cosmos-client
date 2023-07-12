@@ -7,7 +7,7 @@ import (
 )
 
 type ChainRegistry interface {
-	GetChain(ctx context.Context, name string) (ChainInfo, error)
+	GetChain(name string) (ChainInfo, error)
 	ListChains(ctx context.Context) ([]string, error)
 	SourceLink() string
 }

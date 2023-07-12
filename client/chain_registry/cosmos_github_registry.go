@@ -46,7 +46,7 @@ func (c CosmosGithubRegistry) ListChains(ctx context.Context) ([]string, error) 
 	return chains, nil
 }
 
-func (c CosmosGithubRegistry) GetChain(ctx context.Context, name string) (ChainInfo, error) {
+func (c CosmosGithubRegistry) GetChain(name string) (ChainInfo, error) {
 	chainRegURL := fmt.Sprintf("https://raw.githubusercontent.com/cosmos/chain-registry/master/%s/chain.json", name)
 
 	res, err := http.Get(chainRegURL)
