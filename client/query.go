@@ -14,7 +14,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distTypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
 
 // queryBalanceWithAddress returns the amount of coins in the relayer account with address as input
@@ -70,52 +70,6 @@ func (cc *ChainClient) QueryAccount(ctx context.Context, address sdk.AccAddress)
 		return nil, err
 	}
 	return acc, nil
-}
-
-// QueryBalanceWithDenomTraces is a helper function for query balance
-func (cc *ChainClient) QueryBalanceWithDenomTraces(ctx context.Context, address sdk.AccAddress, pageReq *query.PageRequest) (sdk.Coins, error) {
-	coins, err := cc.queryBalanceWithAddress(ctx, cc.MustEncodeAccAddr(address))
-	if err != nil {
-		return nil, err
-	}
-
-	h, err := cc.QueryLatestHeight(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	// TODO: figure out how to handle this
-	// we don't want to expose user to this
-	// so maybe we need a QueryAllDenomTraces function
-	// that will paginate the responses automatically
-	// TODO fix pagination here later
-	dts, err := cc.queryDenomTraces(ctx, 0, 1000, h)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(dts) == 0 {
-		return coins, nil
-	}
-
-	var out sdk.Coins
-	for _, c := range coins {
-		if c.Amount.Equal(sdk.NewInt(0)) {
-			continue
-		}
-
-		for i, d := range dts {
-			if c.Denom == d.IBCDenom() {
-				out = append(out, sdk.Coin{Denom: d.GetFullDenomPath(), Amount: c.Amount})
-				break
-			}
-
-			if i == len(dts)-1 {
-				out = append(out, c)
-			}
-		}
-	}
-	return out, nil
 }
 
 func (cc *ChainClient) QueryDelegatorValidators(ctx context.Context, address sdk.AccAddress) ([]string, error) {

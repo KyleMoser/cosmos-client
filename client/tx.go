@@ -91,7 +91,7 @@ func (cc *ChainClient) SendMsgs(ctx context.Context, msgs []sdk.Msg, memo string
 		done := cc.SetSDKContext()
 		// ensure that we allways call done, even in case of an error or panic
 		defer done()
-		if err = tx.Sign(txf, cc.Config.Key, txb, false); err != nil {
+		if err = tx.Sign(ctx, txf, cc.Config.Key, txb, false); err != nil {
 			return err
 		}
 		return nil
@@ -108,7 +108,7 @@ func (cc *ChainClient) SendMsgs(ctx context.Context, msgs []sdk.Msg, memo string
 	}
 
 	// Broadcast those bytes
-	res, err := cc.BroadcastTx(ctx, txBytes)
+	res, err := cc.TxServiceBroadcast(ctx, &txtypes.BroadcastTxRequest{TxBytes: txBytes, Mode: txtypes.BroadcastMode_BROADCAST_MODE_ASYNC})
 	if err != nil {
 		return nil, err
 	}
@@ -116,11 +116,11 @@ func (cc *ChainClient) SendMsgs(ctx context.Context, msgs []sdk.Msg, memo string
 	// transaction was executed, log the success or failure using the tx response code
 	// NOTE: error is nil, logic should use the returned error to determine if the
 	// transaction was successfully executed.
-	if res.Code != 0 {
-		return res, fmt.Errorf("transaction failed with code: %d", res.Code)
+	if res.TxResponse.Code != 0 {
+		return res.TxResponse, fmt.Errorf("transaction failed with code: %d", res.TxResponse.Code)
 	}
 
-	return res, nil
+	return res.TxResponse, nil
 }
 
 func (cc *ChainClient) PrepareFactory(txf tx.Factory) (tx.Factory, error) {

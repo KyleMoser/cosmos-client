@@ -10,7 +10,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/KyleMoser/cosmos-client/client/codecs/ethermint"
 	"github.com/avast/retry-go/v4"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -119,7 +118,7 @@ func NewChainClient(log *zap.Logger, ccc *ChainClientConfig, homepath string, in
 	cc := &ChainClient{
 		log: log,
 
-		KeyringOptions: append([]keyring.Option{ethermint.EthSecp256k1Option()}, kro...),
+		KeyringOptions: kro,
 		Config:         ccc,
 		Input:          input,
 		Output:         output,

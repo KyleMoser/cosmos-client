@@ -97,7 +97,7 @@ func ReadPageRequest(flagSet *pflag.FlagSet) (*tmquery.PageRequest, error) {
 	reverse, _ := flagSet.GetBool(flags.FlagReverse)
 
 	if page > 1 && offset > 0 {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "cannot specify both --page and --offset")
+		return nil, sdkerrors.ErrInvalidRequest.Wrap("cannot specify both --page and --offset")
 	}
 
 	if page > 1 {

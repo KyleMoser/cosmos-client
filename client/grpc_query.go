@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"strconv"
 
-	gogogrpc "github.com/cosmos/gogoproto/grpc"
 	abci "github.com/cometbft/cometbft/abci/types"
+	gogogrpc "github.com/cosmos/gogoproto/grpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/encoding"
@@ -33,17 +33,17 @@ func (cc *ChainClient) Invoke(ctx context.Context, method string, req, reply int
 
 	// In both cases, we don't allow empty request req (it will panic unexpectedly).
 	if reflect.ValueOf(req).IsNil() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "request cannot be nil")
+		return sdkerrors.ErrInvalidRequest.Wrap("request cannot be nil")
 	}
 
 	// Case 1. Broadcasting a Tx.
 	if reqProto, ok := req.(*tx.BroadcastTxRequest); ok {
 		if !ok {
-			return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "expected %T, got %T", (*tx.BroadcastTxRequest)(nil), req)
+			return sdkerrors.ErrInvalidRequest
 		}
 		resProto, ok := reply.(*tx.BroadcastTxResponse)
 		if !ok {
-			return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "expected %T, got %T", (*tx.BroadcastTxResponse)(nil), req)
+			return sdkerrors.ErrInvalidRequest
 		}
 
 		broadcastRes, err := cc.TxServiceBroadcast(ctx, reqProto)
@@ -103,9 +103,7 @@ func (cc *ChainClient) RunGRPCQuery(ctx context.Context, method string, req inte
 			return abci.ResponseQuery{}, nil, err
 		}
 		if height < 0 {
-			return abci.ResponseQuery{}, nil, sdkerrors.Wrapf(
-				sdkerrors.ErrInvalidRequest,
-				"client.Context.Invoke: height (%d) from %q must be >= 0", height, grpctypes.GRPCBlockHeightHeader)
+			return abci.ResponseQuery{}, nil, sdkerrors.ErrInvalidRequest
 		}
 
 	}
@@ -148,14 +146,12 @@ func (cc *ChainClient) TxServiceBroadcast(ctx context.Context, req *tx.Broadcast
 		return nil, status.Error(codes.InvalidArgument, "invalid empty tx")
 	}
 
-	resp, err := cc.BroadcastTx(ctx, req.TxBytes)
+	resp, err := cc.TxServiceBroadcast(ctx, req)
 	if err != nil {
 		return nil, err
 	}
 
-	return &tx.BroadcastTxResponse{
-		TxResponse: resp,
-	}, nil
+	return resp, nil
 }
 
 func SetHeightOnContext(ctx context.Context, height int64) context.Context {
