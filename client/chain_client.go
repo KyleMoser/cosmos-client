@@ -2,10 +2,12 @@ package client
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"path"
+	"sync"
 	"time"
 
 	"github.com/KyleMoser/cosmos-client/client/codecs/ethermint"
@@ -42,8 +44,74 @@ type ChainClient struct {
 	Input          io.Reader
 	Output         io.Writer
 	// TODO: GRPC Client type?
-
+	rpcLiveness
 	Codec Codec
+}
+
+type rpcLiveness struct {
+	isActive    bool
+	lastChecked time.Time
+	lastActive  time.Time
+}
+
+func (cc *ChainClient) IsActive() bool {
+	return cc.rpcLiveness.isActive
+}
+
+// HealthChecks will continuously check the liveness of each of the given ChainClients.
+// If a ChainClient's RPC node is active, chainClient.IsActive() will return true.
+func HealthChecks(chainClients ...*ChainClient) {
+	ticker := time.NewTicker(10 * time.Second)
+	quit := make(chan struct{})
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				//Check all of the ChainClients to see if they respond to RPC 'get height' queries.
+				var wg sync.WaitGroup
+				for _, cc := range chainClients {
+					cc := cc
+					if time.Since(cc.rpcLiveness.lastChecked) > (9 * time.Second) {
+						wg.Add(1)
+
+						go func() {
+							defer wg.Done()
+							cc.healthCheck()
+						}()
+					}
+				}
+
+				wg.Wait()
+
+				//Stop the liveness checks if none of the RPC clients have been active for at least 10 minutes
+				lastActiveTime := time.Now().Add(time.Duration(-10) * time.Minute)
+				for _, cc := range chainClients {
+					if cc.rpcLiveness.isActive {
+						break
+					}
+
+					if cc.rpcLiveness.lastActive.After(lastActiveTime) {
+						break
+					}
+				}
+
+				close(quit)
+			case <-quit:
+				ticker.Stop()
+				return
+			}
+		}
+	}()
+}
+
+func (cc *ChainClient) healthCheck() bool {
+	_, err := cc.QueryLatestHeight(context.Background())
+	cc.rpcLiveness.isActive = err == nil
+	cc.rpcLiveness.lastChecked = time.Now()
+	if cc.rpcLiveness.isActive {
+		cc.rpcLiveness.lastActive = time.Now()
+	}
+	return cc.rpcLiveness.isActive
 }
 
 func NewChainClient(log *zap.Logger, ccc *ChainClientConfig, homepath string, input io.Reader, output io.Writer, kro ...keyring.Option) (*ChainClient, error) {
