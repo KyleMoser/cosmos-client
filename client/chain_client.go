@@ -6,11 +6,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"os"
 	"path"
 	"sync"
 	"time"
 
 	"github.com/avast/retry-go/v4"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -55,6 +57,20 @@ type rpcLiveness struct {
 
 func (cc *ChainClient) IsActive() bool {
 	return cc.rpcLiveness.isActive
+}
+
+// CliContext creates a new Cosmos SDK client context
+func (cc *ChainClient) CliContext() client.Context {
+	return client.Context{
+		Client:            cc.RPCClient,
+		ChainID:           cc.Config.ChainID,
+		InterfaceRegistry: cc.Codec.InterfaceRegistry,
+		Input:             os.Stdin,
+		Output:            os.Stdout,
+		OutputFormat:      "json",
+		LegacyAmino:       cc.Codec.Amino,
+		TxConfig:          cc.Codec.TxConfig,
+	}
 }
 
 // HealthChecks will continuously check the liveness of each of the given ChainClients.
