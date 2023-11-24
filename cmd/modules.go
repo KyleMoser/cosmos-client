@@ -3,6 +3,7 @@ package cmd
 import (
 	feegrant "cosmossdk.io/x/feegrant/module"
 	"cosmossdk.io/x/upgrade"
+	wasm "github.com/CosmWasm/wasmd/x/wasm"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authz "github.com/cosmos/cosmos-sdk/x/authz/module"
@@ -30,4 +31,5 @@ var ModuleBasics = []module.AppModuleBasic{
 	upgrade.AppModuleBasic{},
 	transfer.AppModuleBasic{},
 	ibc.AppModuleBasic{},
+	wasm.AppModuleBasic{},
 }
