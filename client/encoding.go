@@ -7,6 +7,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/std"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	tmclient "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 )
 
 type Codec struct {
@@ -23,6 +25,8 @@ func MakeCodec(moduleBasics []module.AppModuleBasic, extraCodecs []string) Codec
 	std.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 	modBasic.RegisterLegacyAminoCodec(encodingConfig.Amino)
 	modBasic.RegisterInterfaces(encodingConfig.InterfaceRegistry)
+	clienttypes.RegisterInterfaces(encodingConfig.InterfaceRegistry)
+	tmclient.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 	return encodingConfig
 }
 
