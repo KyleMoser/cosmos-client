@@ -4,13 +4,17 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"path"
 	"sync"
 	"time"
 
+	registry "github.com/KyleMoser/cosmos-client/client/chain_registry"
+	"github.com/KyleMoser/cosmos-client/client/rpc"
 	"github.com/avast/retry-go/v4"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
@@ -19,8 +23,6 @@ import (
 	provtypes "github.com/cometbft/cometbft/light/provider"
 	prov "github.com/cometbft/cometbft/light/provider/http"
 	rpcclient "github.com/cometbft/cometbft/rpc/client"
-	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
-	libclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
 	"github.com/cosmos/gogoproto/proto"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
@@ -119,6 +121,48 @@ func HealthChecks(chainClients ...*ChainClient) {
 	}()
 }
 
+func (c *ChainClient) GetIbcTransferConfig(destChain string) (srcChannel, srcPort, clientId string, err error) {
+	ibcConfig, err := c.GetIbcConfig(destChain)
+	if err != nil {
+		return "", "", "", err
+	} else if len(ibcConfig.Channels) == 0 {
+		return "", "", "", errors.New("unexpected chain configuration 'channels' not found")
+	}
+
+	clientId = ibcConfig.Chain1.ClientId
+	srcChannel = ibcConfig.Channels[0].Chain1.ChannelId
+	srcPort = ibcConfig.Channels[0].Chain1.PortId
+	return
+}
+
+// Get the IBC configuration where this chain is the source and destChain is the IBC endpoint.
+func (c *ChainClient) GetIbcConfig(destChain string) (registry.IbcConfig, error) {
+	chainRegURL := fmt.Sprintf("https://raw.githubusercontent.com/cosmos/chain-registry/master/_IBC/%s-%s.json", c.Config.ChainName, destChain)
+
+	res, err := http.Get(chainRegURL)
+	if err != nil {
+		return registry.IbcConfig{}, err
+	}
+	defer res.Body.Close()
+	if res.StatusCode == http.StatusNotFound {
+		return registry.IbcConfig{}, fmt.Errorf("IBC config not found: response code: %d: GET failed: %s", res.StatusCode, chainRegURL)
+	}
+	if res.StatusCode != http.StatusOK {
+		return registry.IbcConfig{}, fmt.Errorf("response code: %d: GET failed: %s", res.StatusCode, chainRegURL)
+	}
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return registry.IbcConfig{}, err
+	}
+
+	var conf registry.IbcConfig
+	if err := json.Unmarshal([]byte(body), &conf); err != nil {
+		return registry.IbcConfig{}, err
+	}
+	return conf, nil
+}
+
 func (cc *ChainClient) healthCheck() bool {
 	_, err := cc.QueryLatestHeight(context.Background())
 	cc.rpcLiveness.isActive = err == nil
@@ -155,7 +199,7 @@ func (cc *ChainClient) Init() error {
 	// TODO: figure out how to deal with input or maybe just make all keyring backends test?
 
 	timeout, _ := time.ParseDuration(cc.Config.Timeout)
-	rpcClient, err := NewRPCClient(cc.Config.RPCAddr, timeout)
+	rpcClient, err := rpc.NewRPCClient(cc.Config.RPCAddr, timeout)
 	if err != nil {
 		return err
 	}
@@ -178,19 +222,6 @@ func (cc *ChainClient) GetKeyAddress() (sdk.AccAddress, error) {
 		return nil, err
 	}
 	return info.GetAddress()
-}
-
-func NewRPCClient(addr string, timeout time.Duration) (*rpchttp.HTTP, error) {
-	httpClient, err := libclient.DefaultHTTPClient(addr)
-	if err != nil {
-		return nil, err
-	}
-	httpClient.Timeout = timeout
-	rpcClient, err := rpchttp.NewWithClient(addr, "/websocket", httpClient)
-	if err != nil {
-		return nil, err
-	}
-	return rpcClient, nil
 }
 
 // AccountFromKeyOrAddress returns an account from either a key or an address

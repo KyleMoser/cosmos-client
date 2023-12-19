@@ -11,8 +11,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/KyleMoser/cosmos-client/client"
-	"github.com/spf13/viper"
+	"github.com/KyleMoser/cosmos-client/client/rpc"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 )
@@ -95,7 +94,7 @@ func (c ChainInfo) GetAllRPCEndpoints() (out []string, err error) {
 }
 
 func IsHealthyRPC(ctx context.Context, endpoint string) error {
-	cl, err := client.NewRPCClient(endpoint, 5*time.Second)
+	cl, err := rpc.NewRPCClient(endpoint, 5*time.Second)
 	if err != nil {
 		return err
 	}
@@ -196,55 +195,4 @@ func (c ChainInfo) GetAssetList() (AssetList, error) {
 	}
 	return assetList, nil
 
-}
-
-func (c ChainInfo) GetChainConfig(ctx context.Context) (*client.ChainClientConfig, error) {
-	debug := viper.GetBool("debug")
-	home := viper.GetString("home")
-
-	assetList, err := c.GetAssetList()
-	if err != nil {
-		return nil, err
-	}
-
-	var gasPrices string
-	if len(assetList.Assets) > 0 {
-		gasPrices = fmt.Sprintf("%.2f%s", 0.01, assetList.Assets[0].Base)
-	}
-
-	rpc, err := c.GetRandomRPCEndpoint(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return &client.ChainClientConfig{
-		Key:            "default",
-		ChainID:        c.ChainID,
-		RPCAddr:        rpc,
-		AccountPrefix:  c.Bech32Prefix,
-		KeyringBackend: "test",
-		GasAdjustment:  1.2,
-		GasPrices:      gasPrices,
-		KeyDirectory:   home,
-		Debug:          debug,
-		Timeout:        "20s",
-		OutputFormat:   "json",
-		SignModeStr:    "direct",
-		Slip44:         c.Slip44,
-	}, nil
-}
-
-func GetChain(ctx context.Context, chainName string, logger *zap.Logger) (*client.ChainClientConfig, error) {
-	registry := DefaultChainRegistry(logger)
-	chainInfo, err := registry.GetChain(chainName)
-	if err != nil {
-		logger.Info(
-			"Failed to get chain",
-			zap.String("name", chainName),
-			zap.Error(err),
-		)
-		return nil, err
-	}
-
-	return chainInfo.GetChainConfig(ctx)
 }

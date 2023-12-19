@@ -75,7 +75,7 @@ func cmdChainsAdd(a *appState) *cobra.Command {
 					continue
 				}
 
-				chainConfig, err := chainInfo.GetChainConfig(cmd.Context())
+				chainConfig, err := client.GetChainConfig(cmd.Context(), chainInfo)
 				if err != nil {
 					a.Log.Info(
 						"Failed to generate chain config",

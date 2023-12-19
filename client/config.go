@@ -1,7 +1,11 @@
 package client
 
 import (
+	"context"
+	"fmt"
 	"time"
+
+	registry "github.com/KyleMoser/cosmos-client/client/chain_registry"
 
 	feegrant "cosmossdk.io/x/feegrant/module"
 	"cosmossdk.io/x/upgrade"
@@ -15,6 +19,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	ibc "github.com/cosmos/ibc-go/v8/modules/core"
+	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
 var (
@@ -34,6 +40,7 @@ var (
 )
 
 type ChainClientConfig struct {
+	ChainName      string                  `json:"-" yaml:"-"`
 	Key            string                  `json:"key" yaml:"key"`
 	ChainID        string                  `json:"chain-id" yaml:"chain-id"`
 	RPCAddr        string                  `json:"rpc-addr" yaml:"rpc-addr"`
@@ -102,4 +109,56 @@ func GetOsmosisConfig(keyHome string, debug bool) *ChainClientConfig {
 		OutputFormat:   "json",
 		SignModeStr:    "direct",
 	}
+}
+
+func GetChainConfig(ctx context.Context, c registry.ChainInfo) (*ChainClientConfig, error) {
+	debug := viper.GetBool("debug")
+	home := viper.GetString("home")
+
+	assetList, err := c.GetAssetList()
+	if err != nil {
+		return nil, err
+	}
+
+	var gasPrices string
+	if len(assetList.Assets) > 0 {
+		gasPrices = fmt.Sprintf("%.2f%s", 0.01, assetList.Assets[0].Base)
+	}
+
+	rpc, err := c.GetRandomRPCEndpoint(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ChainClientConfig{
+		ChainName:      c.ChainName,
+		Key:            "default",
+		ChainID:        c.ChainID,
+		RPCAddr:        rpc,
+		AccountPrefix:  c.Bech32Prefix,
+		KeyringBackend: "test",
+		GasAdjustment:  1.2,
+		GasPrices:      gasPrices,
+		KeyDirectory:   home,
+		Debug:          debug,
+		Timeout:        "20s",
+		OutputFormat:   "json",
+		SignModeStr:    "direct",
+		Slip44:         c.Slip44,
+	}, nil
+}
+
+func GetChain(ctx context.Context, chainName string, logger *zap.Logger) (*ChainClientConfig, error) {
+	registry := registry.DefaultChainRegistry(logger)
+	chainInfo, err := registry.GetChain(chainName)
+	if err != nil {
+		logger.Info(
+			"Failed to get chain",
+			zap.String("name", chainName),
+			zap.Error(err),
+		)
+		return nil, err
+	}
+
+	return GetChainConfig(ctx, chainInfo)
 }
