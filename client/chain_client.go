@@ -137,11 +137,19 @@ func (c *ChainClient) GetIbcTransferConfig(destChain string) (srcChannel, srcPor
 
 // Get the IBC configuration where this chain is the source and destChain is the IBC endpoint.
 func (c *ChainClient) GetIbcConfig(destChain string) (registry.IbcConfig, error) {
+	// A chain registry entry could either be under e.g. https://github.com/cosmos/chain-registry/blob/master/_IBC/juno-osmosis.json
+	// OR it could be under e.g. https://github.com/cosmos/chain-registry/blob/master/_IBC/osmosis-juno.json
 	chainRegURL := fmt.Sprintf("https://raw.githubusercontent.com/cosmos/chain-registry/master/_IBC/%s-%s.json", c.Config.ChainName, destChain)
+	chainRegURLReversed := fmt.Sprintf("https://raw.githubusercontent.com/cosmos/chain-registry/master/_IBC/%s-%s.json", destChain, c.Config.ChainName)
+	reversed := false
 
 	res, err := http.Get(chainRegURL)
 	if err != nil {
-		return registry.IbcConfig{}, err
+		reversed = true
+		res, err = http.Get(chainRegURLReversed)
+		if err != nil {
+			return registry.IbcConfig{}, err
+		}
 	}
 	defer res.Body.Close()
 	if res.StatusCode == http.StatusNotFound {
@@ -159,6 +167,19 @@ func (c *ChainClient) GetIbcConfig(destChain string) (registry.IbcConfig, error)
 	var conf registry.IbcConfig
 	if err := json.Unmarshal([]byte(body), &conf); err != nil {
 		return registry.IbcConfig{}, err
+	}
+
+	// In the registry file contents, we must flip all references to chain1 and chain2. See example URLs above.
+	if reversed {
+		tmp := conf.Chain1
+		conf.Chain1 = conf.Chain2
+		conf.Chain2 = tmp
+
+		for _, channel := range conf.Channels {
+			tmp := channel.Chain1
+			channel.Chain1 = channel.Chain2
+			channel.Chain2 = tmp
+		}
 	}
 	return conf, nil
 }
