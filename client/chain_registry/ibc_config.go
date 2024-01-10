@@ -7,18 +7,20 @@ type IbcConfig struct {
 	Chain1 IbcConfigChain `json:"chain_1"`
 	Chain2 IbcConfigChain `json:"chain_2"`
 
-	Channels []struct {
-		Chain1   IbcConfigChannel `json:"chain_1"`
-		Chain2   IbcConfigChannel `json:"chain_2"`
-		Ordering string           `json:"ordering"`
-		Version  string           `json:"version"`
+	Channels []IbcConfigChannelOuter `json:"channels"`
+}
 
-		Tags struct {
-			Status    string `json:"status,omitempty"`
-			Preferred bool   `json:"preferred,omitempty"`
-			Dex       string `json:"dex,omitempty"`
-		} `json:"tags,omitempty"`
-	} `json:"channels"`
+type IbcConfigChannelOuter struct {
+	Chain1   IbcConfigChannel `json:"chain_1"`
+	Chain2   IbcConfigChannel `json:"chain_2"`
+	Ordering string           `json:"ordering"`
+	Version  string           `json:"version"`
+
+	Tags struct {
+		Status    string `json:"status,omitempty"`
+		Preferred bool   `json:"preferred,omitempty"`
+		Dex       string `json:"dex,omitempty"`
+	} `json:"tags,omitempty"`
 }
 
 type IbcConfigChain struct {

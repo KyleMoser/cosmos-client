@@ -145,10 +145,16 @@ func (c *ChainClient) GetIbcConfig(destChain string) (registry.IbcConfig, error)
 
 	res, err := http.Get(chainRegURL)
 	if err != nil {
+		return registry.IbcConfig{}, err
+	}
+
+	if res.StatusCode == 404 {
 		reversed = true
 		res, err = http.Get(chainRegURLReversed)
 		if err != nil {
 			return registry.IbcConfig{}, err
+		} else if res.StatusCode != 200 {
+			return registry.IbcConfig{}, fmt.Errorf("expected http 200, got %d", res.StatusCode)
 		}
 	}
 	defer res.Body.Close()
@@ -175,10 +181,10 @@ func (c *ChainClient) GetIbcConfig(destChain string) (registry.IbcConfig, error)
 		conf.Chain1 = conf.Chain2
 		conf.Chain2 = tmp
 
-		for _, channel := range conf.Channels {
-			tmp := channel.Chain1
-			channel.Chain1 = channel.Chain2
-			channel.Chain2 = tmp
+		for i := range conf.Channels {
+			tmp := conf.Channels[i].Chain1
+			conf.Channels[i].Chain1 = conf.Channels[i].Chain2
+			conf.Channels[i].Chain2 = tmp
 		}
 	}
 	return conf, nil
