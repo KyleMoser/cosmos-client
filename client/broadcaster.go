@@ -150,7 +150,7 @@ func (b *Broadcaster) defaultTxFactory(clientCtx client.Context, account client.
 		WithAccountRetriever(clientCtx.AccountRetriever).
 		WithKeybase(clientCtx.Keyring).
 		WithChainID(clientCtx.ChainID).
-		WithSimulateAndExecute(false)
+		WithSimulateAndExecute(true)
 }
 
 // BroadcastTx uses the provided Broadcaster to broadcast all the provided messages which will be signed
