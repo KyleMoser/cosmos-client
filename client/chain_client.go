@@ -72,6 +72,7 @@ func (cc *ChainClient) CliContext() client.Context {
 		OutputFormat:      "json",
 		LegacyAmino:       cc.Codec.Amino,
 		TxConfig:          cc.Codec.TxConfig,
+		Simulate:          true,
 	}
 }
 
