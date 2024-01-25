@@ -209,7 +209,7 @@ func NewChainClient(log *zap.Logger, ccc *ChainClientConfig, homepath string, in
 		Config:         ccc,
 		Input:          input,
 		Output:         output,
-		Codec:          MakeCodec(ccc.Modules, ccc.ExtraCodecs),
+		Codec:          MakeCodec(ccc.Modules, ccc.ExtraCodecs, ccc.AccountPrefix, ccc.AccountPrefix+"valoper"),
 	}
 	if err := cc.Init(); err != nil {
 		return nil, err
