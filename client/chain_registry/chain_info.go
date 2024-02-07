@@ -150,6 +150,52 @@ func (c ChainInfo) GetRPCEndpoints(ctx context.Context) (out []string, err error
 	return endpoints, nil
 }
 
+func (c ChainInfo) GetPreferredRPCEndpoint(ctx context.Context, preferredEndpoints []string) (string, error) {
+	var eg errgroup.Group
+	var endpoints []string
+	healthy := 0
+	unhealthy := 0
+	for _, endpoint := range preferredEndpoints {
+		endpoint := endpoint
+		eg.Go(func() error {
+			err := IsHealthyRPC(ctx, endpoint)
+			if err != nil {
+				unhealthy += 1
+				c.log.Debug(
+					"Ignoring endpoint due to error",
+					zap.String("endpoint", endpoint),
+					zap.Error(err),
+				)
+				return nil
+			}
+			healthy += 1
+			c.log.Debug("Verified healthy endpoint", zap.String("endpoint", endpoint))
+			endpoints = append(endpoints, endpoint)
+			return nil
+		})
+	}
+	if err := eg.Wait(); err != nil {
+		return "", err
+	}
+	c.log.Info("Endpoints queried",
+		zap.String("chain_name", c.ChainName),
+		zap.Int("healthy", healthy),
+		zap.Int("unhealthy", unhealthy),
+	)
+
+	if len(endpoints) == 0 {
+		return "", fmt.Errorf("no working RPCs found")
+	}
+
+	randomGenerator := rand.New(rand.NewSource(time.Now().UnixNano()))
+	endpoint := endpoints[randomGenerator.Intn(len(endpoints))]
+	c.log.Info("Endpoint selected",
+		zap.String("chain_name", c.ChainName),
+		zap.String("endpoint", endpoint),
+	)
+	return endpoint, nil
+}
+
 func (c ChainInfo) GetRandomRPCEndpoint(ctx context.Context) (string, error) {
 	rpcs, err := c.GetRPCEndpoints(ctx)
 	if err != nil {

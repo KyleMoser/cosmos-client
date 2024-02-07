@@ -111,7 +111,7 @@ func GetOsmosisConfig(keyHome string, debug bool) *ChainClientConfig {
 	}
 }
 
-func GetChainConfig(ctx context.Context, c registry.ChainInfo) (*ChainClientConfig, error) {
+func GetChainConfigWithOpts(ctx context.Context, c registry.ChainInfo, opts *ChainConfigOptions) (*ChainClientConfig, error) {
 	debug := viper.GetBool("debug")
 	home := viper.GetString("home")
 
@@ -125,9 +125,16 @@ func GetChainConfig(ctx context.Context, c registry.ChainInfo) (*ChainClientConf
 		gasPrices = fmt.Sprintf("%.2f%s", 0.01, assetList.Assets[0].Base)
 	}
 
-	rpc, err := c.GetRandomRPCEndpoint(ctx)
+	var rpc string
+	if opts != nil && len(opts.PreferredRpcHosts) > 0 {
+		rpc, err = c.GetPreferredRPCEndpoint(ctx, opts.PreferredRpcHosts)
+	}
+
 	if err != nil {
-		return nil, err
+		rpc, err = c.GetRandomRPCEndpoint(ctx)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &ChainClientConfig{
@@ -148,7 +155,11 @@ func GetChainConfig(ctx context.Context, c registry.ChainInfo) (*ChainClientConf
 	}, nil
 }
 
-func GetChain(ctx context.Context, chainName string, logger *zap.Logger) (*ChainClientConfig, error) {
+type ChainConfigOptions struct {
+	PreferredRpcHosts []string
+}
+
+func GetChain(ctx context.Context, chainName string, logger *zap.Logger, options *ChainConfigOptions) (*ChainClientConfig, error) {
 	registry := registry.DefaultChainRegistry(logger)
 	chainInfo, err := registry.GetChain(chainName)
 	if err != nil {
@@ -160,5 +171,5 @@ func GetChain(ctx context.Context, chainName string, logger *zap.Logger) (*Chain
 		return nil, err
 	}
 
-	return GetChainConfig(ctx, chainInfo)
+	return GetChainConfigWithOpts(ctx, chainInfo, options)
 }

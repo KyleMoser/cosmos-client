@@ -12,7 +12,7 @@ import (
 func TestIbcConfig(t *testing.T) {
 	logger := zaptest.NewLogger(t)
 	// Get the chain RPC URI from the Osmosis mainnet chain registry
-	chainClientConfigOsmosis, err := client.GetChain(context.Background(), "osmosis", logger)
+	chainClientConfigOsmosis, err := client.GetChain(context.Background(), "osmosis", logger, nil)
 	if err != nil {
 		t.Fail()
 	}
