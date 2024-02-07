@@ -9,6 +9,7 @@ import (
 	"math/rand"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/KyleMoser/cosmos-client/client/rpc"
@@ -108,6 +109,70 @@ func IsHealthyRPC(ctx context.Context, endpoint string) error {
 	}
 
 	return nil
+}
+
+func (c ChainInfo) GetRPCEndpointWithDomain(ctx context.Context, preferredDomains []string) (out string, err error) {
+	allRPCEndpoints, err := c.GetAllRPCEndpoints()
+	if err != nil {
+		return "", err
+	}
+
+	var eg errgroup.Group
+	var endpoints []string
+	healthy := 0
+	unhealthy := 0
+	for _, endpoint := range allRPCEndpoints {
+		endpoint := endpoint
+
+		url, err := url.Parse(endpoint)
+		if err == nil {
+			host := url.Hostname()
+			isMatch := false
+			for _, domain := range preferredDomains {
+				if strings.Contains(host, domain) {
+					isMatch = true
+				}
+			}
+
+			if isMatch {
+				eg.Go(func() error {
+					err := IsHealthyRPC(ctx, endpoint)
+					if err != nil {
+						unhealthy += 1
+						c.log.Debug(
+							"Ignoring endpoint due to error",
+							zap.String("endpoint", endpoint),
+							zap.Error(err),
+						)
+						return nil
+					}
+					healthy += 1
+					c.log.Debug("Verified healthy endpoint", zap.String("endpoint", endpoint))
+					endpoints = append(endpoints, endpoint)
+					return nil
+				})
+			}
+		}
+	}
+	if err := eg.Wait(); err != nil {
+		return "", err
+	}
+	c.log.Info("Endpoints queried",
+		zap.String("chain_name", c.ChainName),
+		zap.Int("healthy", healthy),
+		zap.Int("unhealthy", unhealthy),
+	)
+	if len(endpoints) == 0 {
+		return "", fmt.Errorf("no working RPCs found")
+	}
+
+	randomGenerator := rand.New(rand.NewSource(time.Now().UnixNano()))
+	endpoint := endpoints[randomGenerator.Intn(len(endpoints))]
+	c.log.Info("Endpoint selected",
+		zap.String("chain_name", c.ChainName),
+		zap.String("endpoint", endpoint),
+	)
+	return endpoint, nil
 }
 
 func (c ChainInfo) GetRPCEndpoints(ctx context.Context) (out []string, err error) {

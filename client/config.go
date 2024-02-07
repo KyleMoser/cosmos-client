@@ -126,7 +126,11 @@ func GetChainConfigWithOpts(ctx context.Context, c registry.ChainInfo, opts *Cha
 	}
 
 	var rpc string
-	if opts != nil && len(opts.PreferredRpcHosts) > 0 {
+	if opts != nil && len(opts.PreferredRpcDomains) > 0 {
+		rpc, err = c.GetRPCEndpointWithDomain(ctx, opts.PreferredRpcDomains)
+	}
+
+	if err != nil && opts != nil && len(opts.PreferredRpcHosts) > 0 {
 		rpc, err = c.GetPreferredRPCEndpoint(ctx, opts.PreferredRpcHosts)
 	}
 
@@ -156,7 +160,8 @@ func GetChainConfigWithOpts(ctx context.Context, c registry.ChainInfo, opts *Cha
 }
 
 type ChainConfigOptions struct {
-	PreferredRpcHosts []string
+	PreferredRpcHosts   []string
+	PreferredRpcDomains []string
 }
 
 func GetChain(ctx context.Context, chainName string, logger *zap.Logger, options *ChainConfigOptions) (*ChainClientConfig, error) {
