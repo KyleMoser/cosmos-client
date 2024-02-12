@@ -134,7 +134,7 @@ func GetChainConfigWithOpts(ctx context.Context, c registry.ChainInfo, opts *Cha
 		rpc, err = c.GetPreferredRPCEndpoint(ctx, opts.PreferredRpcHosts)
 	}
 
-	if err != nil {
+	if err != nil || rpc == "" {
 		rpc, err = c.GetRandomRPCEndpoint(ctx)
 		if err != nil {
 			return nil, err
