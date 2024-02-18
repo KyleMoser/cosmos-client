@@ -7,6 +7,7 @@ import (
 	cosmosmodule "github.com/KyleMoser/cosmos-client/cmd/modules"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	authz "github.com/cosmos/cosmos-sdk/x/authz/module"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/distribution"
@@ -36,4 +37,5 @@ var ModuleBasics = []module.AppModuleBasic{
 	wasm.AppModuleBasic{},
 	capability.AppModuleBasic{},
 	cosmosmodule.AppModuleBasic{},
+	vesting.AppModuleBasic{},
 }
