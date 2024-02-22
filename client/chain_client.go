@@ -200,6 +200,24 @@ func (cc *ChainClient) healthCheck() bool {
 	return cc.rpcLiveness.isActive
 }
 
+// Chain client where keys are in 'rootKeyDirectory/keyring-test' (or whichever keyring-backend is chosen)
+func NewChainClientWithRootKeyDir(log *zap.Logger, ccc *ChainClientConfig, rootKeyDirectory string, input io.Reader, output io.Writer, kro ...keyring.Option) (*ChainClient, error) {
+	ccc.KeyDirectory = rootKeyDirectory
+	cc := &ChainClient{
+		log: log,
+
+		KeyringOptions: kro,
+		Config:         ccc,
+		Input:          input,
+		Output:         output,
+		Codec:          MakeCodec(ccc.Modules, ccc.ExtraCodecs, ccc.AccountPrefix, ccc.AccountPrefix+"valoper"),
+	}
+	if err := cc.Init(); err != nil {
+		return nil, err
+	}
+	return cc, nil
+}
+
 func NewChainClient(log *zap.Logger, ccc *ChainClientConfig, homepath string, input io.Reader, output io.Writer, kro ...keyring.Option) (*ChainClient, error) {
 	ccc.KeyDirectory = keysDir(homepath, ccc.ChainID)
 	cc := &ChainClient{
