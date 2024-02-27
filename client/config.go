@@ -98,6 +98,11 @@ func GetChainConfigWithOpts(ctx context.Context, c registry.ChainInfo, opts *Cha
 		gasPrices = fmt.Sprintf("%.2f%s", 0.01, assetList.Assets[0].Base)
 	}
 
+	// TODO: better bugfix for scenario where chainclient is noble
+	if c.ChainName == "noble" {
+		gasPrices = fmt.Sprintf("%.2f%s", 0.1, "uusdc")
+	}
+
 	var rpc string
 	if opts != nil && len(opts.PreferredRpcDomains) > 0 {
 		rpc, err = c.GetRPCEndpointWithDomain(ctx, opts.PreferredRpcDomains)
