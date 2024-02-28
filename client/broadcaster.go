@@ -192,6 +192,8 @@ func BroadcastTx(ctx context.Context, broadcaster *Broadcaster, broadcastingUser
 	respWithTxHash, err := broadcaster.UnmarshalTxResponseBytes(ctx, txBytes)
 	if err != nil {
 		return sdk.TxResponse{}, err
+	} else if respWithTxHash.Code != 0 {
+		return sdk.TxResponse{}, fmt.Errorf("TX hash %s got unexpected error code %d", respWithTxHash.TxHash, respWithTxHash.Code)
 	}
 
 	return getFullyPopulatedResponse(cc, respWithTxHash.TxHash)
