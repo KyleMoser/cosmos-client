@@ -13,12 +13,12 @@ import (
 	"sync"
 	"time"
 
-	registry "github.com/KyleMoser/cosmos-client/client/chain_registry"
-	"github.com/KyleMoser/cosmos-client/client/rpc"
 	"github.com/avast/retry-go/v4"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	registry "github.com/strangelove-ventures/cosmos-client/client/chain_registry"
+	"github.com/strangelove-ventures/cosmos-client/client/rpc"
 
 	provtypes "github.com/cometbft/cometbft/light/provider"
 	prov "github.com/cometbft/cometbft/light/provider/http"

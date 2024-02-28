@@ -3,7 +3,7 @@ package client_test
 import (
 	"testing"
 
-	"github.com/KyleMoser/cosmos-client/client"
+	"github.com/strangelove-ventures/cosmos-client/client"
 	"go.uber.org/zap/zaptest"
 )
 

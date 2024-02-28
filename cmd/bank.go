@@ -3,11 +3,11 @@ package cmd
 import (
 	"fmt"
 
-	query "github.com/KyleMoser/cosmos-client/client/query"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/spf13/cobra"
+	query "github.com/strangelove-ventures/cosmos-client/client/query"
 )
 
 func bankSendCmd(a *appState) *cobra.Command {

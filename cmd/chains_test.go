@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/KyleMoser/cosmos-client/client"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/strangelove-ventures/cosmos-client/client"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 )

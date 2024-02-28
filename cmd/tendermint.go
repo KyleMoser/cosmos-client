@@ -20,8 +20,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/KyleMoser/cosmos-client/client/query"
 	"github.com/spf13/cobra"
+	"github.com/strangelove-ventures/cosmos-client/client/query"
 	"go.uber.org/zap"
 )
 

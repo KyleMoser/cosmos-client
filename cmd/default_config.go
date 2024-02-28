@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"path"
 
-	"github.com/KyleMoser/cosmos-client/client"
+	"github.com/strangelove-ventures/cosmos-client/client"
 )
 
 var _ configPart = (*CosmosClientConfig)(nil)

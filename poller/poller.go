@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"sync"
 
-	"github.com/KyleMoser/cosmos-client/client"
+	"github.com/strangelove-ventures/cosmos-client/client"
 )
 
 type Querier struct {

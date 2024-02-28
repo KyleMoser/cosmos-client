@@ -6,12 +6,12 @@ import (
 	"io"
 	"testing"
 
-	"github.com/KyleMoser/cosmos-client/cmd"
 	"github.com/cometbft/cometbft/p2p"
 	"github.com/cometbft/cometbft/rpc/client/mocks"
 	coretypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/strangelove-ventures/cosmos-client/cmd"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"

@@ -3,8 +3,8 @@ COMMIT  := $(shell git log -1 --format='%H')
 
 all: test install
 
-LD_FLAGS = -X github.com/KyleMoser/cosmos-client/cmd.Version=$(VERSION) \
-	-X github.com/KyleMoser/cosmos-client/cmd.Commit=$(COMMIT) \
+LD_FLAGS = -X github.com/strangelove-ventures/cosmos-client/cmd.Version=$(VERSION) \
+	-X github.com/strangelove-ventures/cosmos-client/cmd.Commit=$(COMMIT) \
 
 BUILD_FLAGS := -ldflags '$(LD_FLAGS)'
 

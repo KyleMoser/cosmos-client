@@ -5,10 +5,10 @@ import (
 	"os"
 	"path"
 
-	"github.com/KyleMoser/cosmos-client/client"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/strangelove-ventures/cosmos-client/client"
 	"go.uber.org/zap"
 )
 

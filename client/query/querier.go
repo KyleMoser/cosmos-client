@@ -1,9 +1,9 @@
 package query
 
 import (
-	"github.com/KyleMoser/cosmos-client/client"
 	coretypes "github.com/cometbft/cometbft/rpc/core/types"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/strangelove-ventures/cosmos-client/client"
 )
 
 type Query struct {

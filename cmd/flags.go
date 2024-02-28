@@ -1,13 +1,13 @@
 package cmd
 
 import (
-	"github.com/KyleMoser/cosmos-client/client/query"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	tmquery "github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"github.com/strangelove-ventures/cosmos-client/client/query"
 )
 
 const (

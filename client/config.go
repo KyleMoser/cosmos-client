@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	registry "github.com/KyleMoser/cosmos-client/client/chain_registry"
+	registry "github.com/strangelove-ventures/cosmos-client/client/chain_registry"
 
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/spf13/viper"

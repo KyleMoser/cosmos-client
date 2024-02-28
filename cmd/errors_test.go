@@ -3,9 +3,9 @@ package cmd_test
 import (
 	"testing"
 
-	"github.com/KyleMoser/cosmos-client/cmd"
 	"github.com/jhump/protoreflect/desc"
 	"github.com/jhump/protoreflect/desc/builder"
+	"github.com/strangelove-ventures/cosmos-client/cmd"
 	"github.com/stretchr/testify/require"
 )
 

@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/KyleMoser/cosmos-client/client/rpc"
+	"github.com/strangelove-ventures/cosmos-client/client/rpc"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 )

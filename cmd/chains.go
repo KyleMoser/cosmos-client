@@ -9,9 +9,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/KyleMoser/cosmos-client/client"
-	"github.com/KyleMoser/cosmos-client/client/chain_registry"
 	"github.com/spf13/cobra"
+	"github.com/strangelove-ventures/cosmos-client/client"
+	"github.com/strangelove-ventures/cosmos-client/client/chain_registry"
 	"go.uber.org/zap"
 )
 
